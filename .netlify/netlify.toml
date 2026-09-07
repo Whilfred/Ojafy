@@ -1,0 +1,26 @@
+plugins = []
+headers = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "C:\\Users\\KMBOMI\\ojafy\\eseafy\\front_end"
+publishOrigin = "default"
+base = "C:\\Users\\KMBOMI\\ojafy\\eseafy\\front_end"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
