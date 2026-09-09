@@ -1,7 +1,7 @@
 // ══════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════
-const API_URL = 'https://eseafy.onrender.com/api';
+const API_URL = 'http://localhost:3002/api';
 
 // ══════════════════════════════════════
 //  ÉTAT

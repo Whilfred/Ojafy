@@ -1269,6 +1269,36 @@ Profitez-en avant qu'il soit trop tard.
   </div>
 </div>
 
+    <!-- Apparence boutique (logo + couleurs) -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><div><h2>Apparence de la boutique</h2></div></div>
+      <div style="padding:22px;">
+        <div class="fg">
+          <label class="lbl">Logo de la boutique</label>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div id="logoPreview" style="width:64px;height:64px;border-radius:14px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:26px;">🏪</div>
+            <div>
+              <input type="file" id="logoFileInp" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" onchange="uploadLogo(this)" />
+              <button class="btn-primary" type="button" onclick="document.getElementById('logoFileInp').click()">📤 Changer le logo</button>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">JPG, PNG, WEBP ou GIF · 5 Mo max</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+          <div class="fg">
+            <label class="lbl">Couleur principale</label>
+            <input class="inp" type="color" id="couleurPrimaireInp" value="#1A6BFF" style="height:44px;padding:4px;" />
+          </div>
+          <div class="fg">
+            <label class="lbl">Couleur secondaire</label>
+            <input class="inp" type="color" id="couleurSecondaireInp" value="#14314D" style="height:44px;padding:4px;" />
+          </div>
+        </div>
+        <div id="apparenceMsg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px;"></div>
+        <button class="btn-primary" onclick="saveApparence(this)" style="margin-top:8px;">💾 Sauvegarder les couleurs</button>
+      </div>
+    </div>
+
     <!-- Paramètres généraux -->
     <div class="card" style="margin-bottom:16px;">
       <div class="card-head"><div><h2>Paramètres généraux</h2></div></div>
@@ -1347,7 +1377,10 @@ Profitez-en avant qu'il soit trop tard.
 
 <script>
 // ══ CONFIG ══
-const API_URL = 'https://eseafy.onrender.com/api';
+const BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:3002'
+  : 'https://eseafy.onrender.com';
+const API_URL = BASE_URL + '/api';
 const token   = localStorage.getItem('token');
 const user    = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -1829,14 +1862,14 @@ function closeAllDropdowns() {
 
 // Fonction pour voir le produit - REDIRIGE VERS LE LIEN
 function viewProduit(slug) {
-  const lien = `https://eseafy.onrender.com/boutique/boutique-${user.id}/${slug}`;
+  const lien = `${BASE_URL}/boutique/boutique-${user.id}/${slug}`;
   window.open(lien, '_blank'); // Ouvre dans un nouvel onglet
   closeAllDropdowns();
 }
 
 // Fonction pour copier le lien
 function copyLien(slug) {
-  const lien = `https://eseafy.onrender.com/boutique/boutique-${user.id}/${slug}`;
+  const lien = `${BASE_URL}/boutique/boutique-${user.id}/${slug}`;
   navigator.clipboard.writeText(lien).then(() => {
     // Notification plus discrète
     showToast('✅ Lien copié !', 'success');
@@ -1922,7 +1955,7 @@ function showToast(message, type = 'success') {
 }
 
 function copyLien(slug) {
-  const lien = `https://eseafy.onrender.com/boutique/boutique-${user.id}/${slug}`;
+  const lien = `${BASE_URL}/boutique/boutique-${user.id}/${slug}`;
   
   navigator.clipboard.writeText(lien).then(() => {
     // Créer un toast personnalisé avec animation de vérification
@@ -2801,8 +2834,10 @@ async function editProduit(id) {
             
             // Construire l'URL complète si nécessaire
             let fullImageUrl = imgUrl;
-            if (imgUrl && imgUrl.startsWith('/uploads/')) {
-              fullImageUrl = `https://eseafy.onrender.com${imgUrl}`;
+            if (imgUrl && imgUrl.startsWith('/api/medias/')) {
+              fullImageUrl = `${API_URL.replace('/api','')}${imgUrl}`;
+            } else if (imgUrl && imgUrl.startsWith('/uploads/')) {
+              fullImageUrl = `${BASE_URL}${imgUrl}`;
             }
             
             div.innerHTML = `
@@ -3373,9 +3408,76 @@ async function loadSettings() {
         const devise = document.getElementById('shopDevise'); if (devise) devise.value = b.devise || 'XOF';
         const langue = document.getElementById('shopLangue'); if (langue) langue.value = b.langue || 'fr';
         const pays   = document.getElementById('shopPays');   if (pays)   pays.value   = b.pays   || 'Burkina Faso';
+
+        const primInp = document.getElementById('couleurPrimaireInp');   if (primInp) primInp.value = b.couleur_primaire   || '#1A6BFF';
+        const secInp  = document.getElementById('couleurSecondaireInp'); if (secInp)  secInp.value  = b.couleur_secondaire || '#14314D';
+        const logoPreview = document.getElementById('logoPreview');
+        if (logoPreview && b.logo_url) {
+          logoPreview.innerHTML = `<img src="${API_URL.replace('/api','')}${b.logo_url}" style="width:100%;height:100%;object-fit:cover;" />`;
+        }
       }
     }
   } catch (err) { console.error('❌ loadSettings :', err); }
+}
+
+// ══ UPLOAD DU LOGO BOUTIQUE ══
+async function uploadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById('logoPreview');
+  const formData = new FormData();
+  formData.append('logo', file);
+
+  preview.innerHTML = '⏳';
+  try {
+    const res  = await fetch(`${API_URL}/boutique/logo`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      preview.innerHTML = `<img src="${API_URL.replace('/api','')}${data.logo_url}" style="width:100%;height:100%;object-fit:cover;" />`;
+    } else {
+      alert('❌ ' + (data.message || 'Échec de l’upload du logo.'));
+      preview.innerHTML = '🏪';
+    }
+  } catch (err) {
+    console.error('❌ uploadLogo :', err);
+    alert('❌ Erreur réseau lors de l’upload du logo.');
+    preview.innerHTML = '🏪';
+  } finally {
+    input.value = '';
+  }
+}
+
+// ══ SAUVEGARDER LES COULEURS DE LA BOUTIQUE ══
+async function saveApparence(btn) {
+  const couleur_primaire   = document.getElementById('couleurPrimaireInp').value;
+  const couleur_secondaire = document.getElementById('couleurSecondaireInp').value;
+  const msgEl = document.getElementById('apparenceMsg');
+
+  btn.disabled = true; btn.textContent = '⏳ Sauvegarde…';
+  try {
+    const res  = await fetch(`${API_URL}/boutique/apparence`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ couleur_primaire, couleur_secondaire })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      msgEl.style.background = '#d4edda'; msgEl.style.color = '#1c7a4a';
+      msgEl.textContent = '✅ Couleurs sauvegardées !';
+    } else {
+      msgEl.style.background = '#f8d7da'; msgEl.style.color = '#721c24';
+      msgEl.textContent = '❌ ' + (data.message || 'Erreur.');
+    }
+    msgEl.style.display = 'block';
+    setTimeout(() => msgEl.style.display = 'none', 3000);
+  } catch (err) {
+    msgEl.textContent = 'Erreur serveur.'; msgEl.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = '💾 Sauvegarder les couleurs'; }
 }
 
 async function saveSettings(btn) {
