@@ -3166,12 +3166,10 @@ async function sauvegarderProfil(btn) {
     const data = await res.json();
 
     if (res.ok) {
-      // Mettre à jour le localStorage
       const u = JSON.parse(localStorage.getItem('user') || '{}');
       u.nom = nom; u.prenom = prenom;
       localStorage.setItem('user', JSON.stringify(u));
 
-      // Mettre à jour la sidebar
       document.getElementById('sideShopName').textContent = prenom ? `Boutique de ${prenom}` : 'Ma boutique';
       document.getElementById('userAvatar').textContent   = [prenom, nom].filter(Boolean).map(s => s[0].toUpperCase()).join('');
 
@@ -3183,7 +3181,6 @@ async function sauvegarderProfil(btn) {
     }
     msgEl.style.display = 'block';
     setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
-
   } catch (err) {
     msgEl.style.background = '#f8d7da'; msgEl.style.color = '#721c24';
     msgEl.textContent = 'Erreur serveur.';
