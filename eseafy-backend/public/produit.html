@@ -631,7 +631,7 @@
 <script>
   const BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3002'
-    : 'https://eseafy.onrender.com';
+    : 'https://https://ojafy.onrender.com';
   const API_URL = BASE_URL + '/api';
   let produitData = null;
   let promoAppliquee = null;
@@ -829,7 +829,7 @@
       const pathParts = window.location.pathname.split('/').filter(Boolean);
       const slugBoutique = pathParts[1] || null;
       if (!slugBoutique) return;
-      fetch('https://eseafy.onrender.com/api/tracker/visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, boutique_slug: slugBoutique, country: geo.country, city: geo.city, device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop' }) }).catch(() => {});
+      fetch('https://https://ojafy.onrender.com/api/tracker/visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, boutique_slug: slugBoutique, country: geo.country, city: geo.city, device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop' }) }).catch(() => {});
     }
     envoyerTracking();
   })();
